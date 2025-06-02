@@ -1,0 +1,56 @@
+nodes = linspace(-1,1,200);
+%we need matrix of n+1 row vectors and n multiples columns to represent
+%nodes
+i = [3,4,5,10];
+Error = zeros(size(i));
+%functions
+f =@(x) exp(x);
+%f =@(x) sin(x);
+err_count = 1;
+for n = i
+%n = 10;
+    multiples = floor(200/(n+1));
+    rem = 200 - (n+1)*multiples;
+    
+    %Calculating the nodes for piece wise lagrange interpolation(P-L-I)
+    if rem ==0
+        j = zeros(n+1,multiples);
+    else
+        j = zeros(n+1,multiples+1);
+    end
+    
+    k_val = linspace(0,1000,1001);
+    eval_nodes = k_val./500 -1;
+    
+    count_b = 1;
+    count_t = n+1;
+    for i=1:length(j)
+        if count_t <=200
+            j(:,i) = nodes(count_b:count_t)';
+        else
+            j(:,i) = nodes(200-n:200)';
+        end
+        count_b = count_t + 1;
+        count_t = count_b + n;
+    end
+    
+    %calculating the eval_nodes for P-L-I
+    Error_v = [];
+    t = 1;
+    for i=1: length(j)
+        eval = [];
+        while eval_nodes(t)<=j(n+1,i) & t<length(eval_nodes)    
+            eval = vertcat(eval,eval_nodes(t));
+            t = t+1;
+        end
+        P = lag_p(eval,f,j(:,i));
+        fdata = f(eval);
+        E = max(abs(fdata-P));
+        Error_v = horzcat(Error_v,E);
+    end
+    
+    Error(err_count) = max(Error_v);
+    err_count = err_count +1;
+end
+
+
